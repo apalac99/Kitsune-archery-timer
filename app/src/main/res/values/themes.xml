@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema principal de la aplicación -->
+    <style name="Theme.ArcheryTimer" parent="android:Theme.Material.Light.NoActionBar">
+
+        <!-- 1. Color de fondo de la pantalla de carga (Blanco) -->
+        <item name="android:windowSplashScreenBackground">@android:color/white</item>
+
+        <!-- 2. Tu logo personalizado que está en drawable -->
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/logo_splash</item>
+
+        <!-- 3. Esto evita que el logo se vea muy pequeño en algunos teléfonos -->
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/white</item>
+
+    </style>
+</resources>
