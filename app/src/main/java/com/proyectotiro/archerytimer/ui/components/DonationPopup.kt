@@ -1,6 +1,5 @@
 package com.proyectotiro.archerytimer.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,16 +18,19 @@ import com.proyectotiro.archerytimer.Lang
 @Composable
 fun DonationPopup(
     lang: Lang,
-    darkRed: Color,
+    darkRed: Color, // Mantenemos el parámetro por compatibilidad, aunque usemos el nuevo color interno
     onDismiss: () -> Unit,
     onDonate: () -> Unit
 ) {
+    // Definimos el Naranja Ámbar de alta visibilidad
+    val amberOrange = Color(0xFFFF9100)
+
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-                .border(width = 2.dp, color = Color.Yellow, shape = RoundedCornerShape(size = 16.dp)),
+                .border(width = 2.dp, color = amberOrange, shape = RoundedCornerShape(size = 16.dp)),
             shape = RoundedCornerShape(size = 16.dp),
             color = Color.Black
         ) {
@@ -38,14 +40,14 @@ fun DonationPopup(
             ) {
                 // Título con icono
                 Text(
-                    text = "❤️",
+                    text = "🏹",
                     fontSize = 40.sp,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
                 Text(
                     text = if (lang == Lang.ES) "REGÁLAME UNA FLECHA" else "BUY ME AN ARROW",
-                    color = darkRed,
+                    color = amberOrange, // Aplicamos el nuevo color aquí
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Black,
                     textAlign = TextAlign.Center
@@ -56,9 +58,9 @@ fun DonationPopup(
                 // Mensaje Personalizado
                 Text(
                     text = if (lang == Lang.ES) {
-                        "Kitsune Archery Timer es una herramienta desarrollada por Alejandro Palacios (Arquero Master - Club Kitsune, La Ceja - Colombia) para la comunidad. Sin publicidad y 100% gratuita.\n\nTu apoyo ayuda a mantener y mejorar este proyecto.\n\n¡Gracias por disparar conmigo!"
+                        "Kitsune Archery Timer es una herramienta desarrollada por Alejandro Palacios (Arquero Master 50+, Club Kitsune) para la comunidad. Sin publicidad y 100% gratuita.\n\nTu apoyo ayuda a mantener y mejorar este proyecto.\n\n¡Gracias por disparar conmigo!"
                     } else {
-                        "Kitsune Archery Timer is a tool developed by Alejandro Palacios (Recurve Archer in La Ceja - Colombia) for the community. Ad-free and 100% free.\n\nYour support helps maintain and improve this project.\n\nThanks for shooting with me!"
+                        "Kitsune Archery Timer is a tool developed by Alejandro Palacios (Master 50+ Recurve Archer, Club Kitsune) for the community. Ad-free and 100% free.\n\nYour support helps maintain and improve this project.\n\nThanks for shooting with me!"
                     },
                     color = Color.White,
                     fontSize = 14.sp,
@@ -74,7 +76,7 @@ fun DonationPopup(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(height = 55.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)), // Verde éxito
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
                     shape = RoundedCornerShape(size = 8.dp)
                 ) {
                     Text(

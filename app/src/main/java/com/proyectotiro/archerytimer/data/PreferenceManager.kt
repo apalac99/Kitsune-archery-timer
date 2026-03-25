@@ -15,7 +15,10 @@ class PreferenceManager(context: Context) {
     fun saveString(key: String, value: String) = prefs.edit().putString(key, value).apply()
     fun getString(key: String): String? = prefs.getString(key, null)
 
-    // --- NUEVOS MÉTODOS PARA LISTAS COMPLEJAS (JSON) ---
+    // NUEVO: Soporte para Long (Fechas)
+    fun saveLong(key: String, value: Long) = prefs.edit().putLong(key, value).apply()
+    fun getLong(key: String, default: Long): Long = prefs.getLong(key, default)
+
     fun <T> saveList(key: String, list: List<T>) {
         val json = gson.toJson(list)
         prefs.edit().putString(key, json).apply()

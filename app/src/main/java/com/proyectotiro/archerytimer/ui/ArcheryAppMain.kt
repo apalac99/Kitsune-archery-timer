@@ -1,6 +1,7 @@
 package com.proyectotiro.archerytimer.ui
 
 import android.os.CountDownTimer
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -37,16 +39,36 @@ fun ArcheryAppMain() {
     val context = LocalContext.current
     val prefs = remember { PreferenceManager(context = context) }
     val whistle = remember { WhistleSystem(context = context) }
-    val donationManager = remember { DonationManager(context = context) } // Nuevo: Gestor de donaciones
+    val donationManager = remember { DonationManager(context = context) }
     val darkRed = Color(0xFF8B0000)
 
     val savedLang = prefs.getString(key = "app_lang")
     var currentLang by remember { mutableStateOf(value = if (savedLang == "EN") Lang.EN else Lang.ES) }
     var currentMode by remember { mutableStateOf(value = if (savedLang == null) AppMode.LANG_SELECT else AppMode.WELCOME) }
 
+    // --- LÓGICA DE LATIDO DEL CORAZÓN (24 HORAS) ---
+    var lastDonationTime by remember { mutableStateOf(value = prefs.getLong(key = "last_donation_time", default = 0L)) }
+    val isHeartBeating = remember(key1 = lastDonationTime) {
+        val currentTime = System.currentTimeMillis()
+        val oneDayMillis = 24 * 60 * 60 * 1000L
+        (currentTime - lastDonationTime) < oneDayMillis
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "heartBeat")
+    val heartScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.35f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 700, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+
+    // --- ESTADOS DE DIÁLOGOS Y APP ---
     var isTestMode by remember { mutableStateOf(value = false) }
     var showInfoDialog by remember { mutableStateOf(value = false) }
-    var showDonationDialog by remember { mutableStateOf(value = false) } // Nuevo: Estado de ventana donación
+    var showDonationDialog by remember { mutableStateOf(value = false) }
     var showSettingsDialog by remember { mutableStateOf(value = false) }
     var showStatsDialog by remember { mutableStateOf(value = false) }
     var showCalendarDialog by remember { mutableStateOf(value = false) }
@@ -138,11 +160,16 @@ fun ArcheryAppMain() {
                     }
                     Text(text = titleText, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp), textAlign = TextAlign.Center)
                     Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Row { // Agrupación izquierda (Info + Donación)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(onClick = { showInfoDialog = true }, modifier = Modifier.size(size = 40.dp)) { Text(text = "ⓘ", color = Color.White, fontSize = 20.sp) }
-                            IconButton(onClick = { showDonationDialog = true }, modifier = Modifier.size(size = 40.dp)) { Text(text = "❤️", fontSize = 20.sp) }
+                            IconButton(
+                                onClick = { showDonationDialog = true },
+                                modifier = Modifier
+                                    .size(size = 40.dp)
+                                    .scale(scale = if (isHeartBeating) heartScale else 1f)
+                            ) { Text(text = "❤️", fontSize = 20.sp) }
                         }
-                        Row { // Agrupación derecha (Estadísticas + Calendario + Ajustes)
+                        Row {
                             IconButton(onClick = { showStatsDialog = true }, modifier = Modifier.size(size = 40.dp)) { Text(text = "📊", color = Color.White, fontSize = 25.sp) }
                             IconButton(onClick = { showCalendarDialog = true }, modifier = Modifier.size(size = 40.dp)) { Text(text = "📅", color = Color.White, fontSize = 25.sp) }
                             IconButton(onClick = { showSettingsDialog = true }, modifier = Modifier.size(size = 40.dp)) { Text(text = "⚙️", color = Color.White, fontSize = 25.sp) }
@@ -181,7 +208,21 @@ fun ArcheryAppMain() {
         }
     }
 
-    if (showDonationDialog) DonationPopup(lang = currentLang, darkRed = darkRed, onDismiss = { showDonationDialog = false }, onDonate = { donationManager.startDonationProcess(lang = currentLang) { success -> if (success) showDonationDialog = false } })
+    if (showDonationDialog) DonationPopup(
+        lang = currentLang,
+        darkRed = darkRed,
+        onDismiss = { showDonationDialog = false },
+        onDonate = {
+            donationManager.startDonationProcess(lang = currentLang) { success ->
+                if (success) {
+                    val now = System.currentTimeMillis()
+                    prefs.saveLong(key = "last_donation_time", value = now)
+                    lastDonationTime = now // Dispara la animación inmediatamente
+                    showDonationDialog = false
+                }
+            }
+        }
+    )
 
     if (showCalendarDialog) CalendarPopup(events = events, lang = currentLang, darkRed = darkRed, onDismiss = { showCalendarDialog = false }, onAddEvent = { t, d -> events = events + ArcheryEvent(title = t, date = d); prefs.saveList(key = "list_events", list = events) }, onDeleteEvent = { id -> events = events.filter { it.id != id }; prefs.saveList(key = "list_events", list = events) })
 
